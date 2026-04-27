@@ -120,12 +120,11 @@ body {{
 <body>
   <div class="card">
       <div class="icon">🔒</div>
-      <div class="title">Secure Redirect</div>
-      <div class="sub">Connection Established</div>
+      <div class="title">Secure System</div>
 
       <div class="scan">
         ✔ Secure Like Bot verification complete
-        <br>Redirecting...
+        <br>Scanning...
       </div>
 
       <div class="footer">Protected by Secure Redirect</div>
