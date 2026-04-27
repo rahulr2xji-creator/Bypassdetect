@@ -69,6 +69,14 @@ window.location.replace("{short}");
 
 </head>
 
+<body style="background:#111;color:white;text-align:center;padding-top:50px;">
+<h3>🔗 Opening Link...</h3>
+
+<script>
+window.location.href = "{short}";
+</script>
+
+</body>
 </html>
 """
 
