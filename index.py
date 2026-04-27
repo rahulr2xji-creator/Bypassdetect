@@ -1,111 +1,72 @@
-from flask import Flask, request, jsonify
-from nanoid import generate
-import time, requests
+from flask import Flask, request
+import requests, time, string, random
 
 app = Flask(__name__)
-TOKENS = {}
 
 AROLINK_API = "82288e6f415eb47c5e596a29d2f1df044ed42620"
 DOMAIN = "https://bypassdetect-one.vercel.app"
 
-# -----------------------------
-# CREATE SHORT LINK API
-# -----------------------------
-@app.route("/create")
-def create():
-    user = request.args.get("user")
+DB = {}
 
-    if not user:
-        return jsonify({"error":"user missing"}),400
+# random id generator
+def gen_id():
+    return ''.join(random.choice(string.ascii_letters+string.digits) for _ in range(6))
 
-    # 1️⃣ create token
-    token = generate(size=12)
+# ===============================
+# BOT CALL API
+# ===============================
+@app.route("/generate")
+def generate():
+    url = request.args.get("url")
 
-    TOKENS[token] = {
-        "user": user,
-        "time": time.time(),
-        "used": False
+    if not url:
+        return "url missing"
+
+    # 🔗 short with arolinks
+    api = f"https://arolinks.com/api?api={AROLINK_API}&url={url}&format=text"
+    short_link = requests.get(api).text
+
+    gid = gen_id()
+
+    DB[gid] = {
+        "short": short_link,
+        "time": time.time()
     }
 
-    # 2️⃣ real destination (gate link)
-    gate_link = f"{DOMAIN}/gate?token={token}"
-
-    # 3️⃣ call arolinks api
-    short_api = (
-        f"https://arolinks.com/api?"
-        f"api={AROLINK_API}&url={gate_link}&format=text"
-    )
-
-    try:
-        short_url = requests.get(short_api).text
-    except:
-        return "Shortener error"
-
-    # 4️⃣ return short link
-    return jsonify({"short_link": short_url})
+    # return gateway link
+    return f"{DOMAIN}/{gid}"
 
 
-# -----------------------------
-# GATE PAGE (ANTI BYPASS)
-# -----------------------------
-@app.route("/gate")
-def gate():
-    token = request.args.get("token")
+# ===============================
+# GATEWAY REDIRECT PAGE
+# ===============================
+@app.route("/<gid>")
+def open_link(gid):
 
-    if token not in TOKENS:
-        return "Invalid link"
+    if gid not in DB:
+        return "<h2>Invalid Link</h2>"
 
-    html = f"""
+    data = DB[gid]
+
+    # ⏰ 30 minutes expiry
+    if time.time() - data["time"] > 1800:
+        return "<h2>❌ Link Expired</h2>"
+
+    short = data["short"]
+
+    # 1 sec animation then redirect
+    return f"""
     <html>
     <head>
-    <meta http-equiv="refresh" content="7;url=/verify?token={token}">
+    <meta http-equiv="refresh" content="1;url={short}">
     </head>
 
-    <body style="text-align:center;padding-top:50px;font-family:sans-serif;">
-    <h2>🔐 Verifying human...</h2>
-    <p>Please wait 6 seconds</p>
-
-    <script>
-    document.cookie = "human=1; max-age=60";
-    </script>
+    <body style="text-align:center;padding-top:60px;font-family:sans-serif;">
+    <h2>🔐 Generating your link...</h2>
+    <p>Please wait 1 second</p>
     </body>
     </html>
     """
-
-    return html
-
-
-# -----------------------------
-# VERIFY PAGE (FINAL CREDIT)
-# -----------------------------
-@app.route("/verify")
-def verify():
-    token = request.args.get("token")
-
-    if token not in TOKENS:
-        return "Invalid"
-
-    data = TOKENS[token]
-
-    if data["used"]:
-        return "Already used"
-
-    # ⏱ bypass detection
-    if time.time() - data["time"] < 6:
-        return "Bypass detected"
-
-    # 🍪 cookie check
-    if "human=1" not in request.headers.get("Cookie",""):
-        return "Bypass blocked"
-
-    # 🤖 bot detection
-    ua = request.headers.get("User-Agent","")
-    if "Mozilla" not in ua:
-        return "Bot blocked"
-
-    TOKENS[token]["used"] = True
-
-    return "🎉 Credit Added Successfully"
 
 
 # Vercel handler
