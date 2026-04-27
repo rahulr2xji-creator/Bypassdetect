@@ -24,7 +24,7 @@ def create():
         "used": False
     }
 
-    gate_link = f"https://YOURDOMAIN.vercel.app/gate?token={token}"
+    gate_link = f"https://bypassdetect-one.vercel.app/gate?token={token}"
 
     return jsonify({"link": gate_link})
 
