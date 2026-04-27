@@ -48,87 +48,34 @@ def open_link(gid):
 
     data = DB[gid]
 
-    # ⏰ 30 minutes expiry
+    # ⏰ 30 min expiry
     if time.time() - data["time"] > 1800:
         return "<h2>❌ Link Expired</h2>"
 
     short = data["short"]
 
-    # 1 sec animation then redirect
     return f"""
 <!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="refresh" content="1;url={short}">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body {{
-  margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:Arial, sans-serif;
-  background:linear-gradient(135deg,#0b0f2a,#141a3a);
-  color:white;
-}}
+<!-- ⚡ instant redirect -->
+<script>
+window.location.replace("{short}");
+</script>
 
-.card {{
-  width:90%;
-  max-width:380px;
-  padding:30px;
-  border-radius:20px;
-  background:rgba(255,255,255,0.05);
-  backdrop-filter: blur(10px);
-  box-shadow:0 0 25px rgba(0,0,0,0.4);
-  text-align:center;
-}}
+<!-- ⚡ backup redirect -->
+<meta http-equiv="refresh" content="0;url={short}">
 
-.icon {{
-  font-size:45px;
-  margin-bottom:15px;
-}}
-
-.title {{
-  font-size:26px;
-  font-weight:bold;
-}}
-
-.sub {{
-  opacity:0.7;
-  margin-top:5px;
-}}
-
-.scan {{
-  margin-top:25px;
-  padding:15px;
-  border-radius:15px;
-  background:rgba(0,255,170,0.1);
-  border:1px solid rgba(0,255,170,0.3);
-  font-size:18px;
-}}
-
-.footer {{
-  margin-top:20px;
-  opacity:0.6;
-  font-size:14px;
-}}
-</style>
 </head>
 
-<body>
-  <div class="card">
-      <div class="icon">🔒</div>
-      <div class="title">Secure System</div>
+<body style="background:#111;color:white;text-align:center;padding-top:50px;">
+<h3>🔗 Opening Link...</h3>
 
-      <div class="scan">
-        ✔ Secure Like Bot verification complete
-        <br>Scanning...
-      </div>
+<script>
+window.location.href = "{short}";
+</script>
 
-      <div class="footer">Protected by Secure Redirect</div>
-  </div>
 </body>
 </html>
 """
