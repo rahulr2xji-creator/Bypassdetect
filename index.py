@@ -4,7 +4,7 @@ import requests, time, string, random
 app = Flask(__name__)
 
 AROLINK_API = "82288e6f415eb47c5e596a29d2f1df044ed42620"
-DOMAIN = "https://bypassdetect-one.vercel.app"
+DOMAIN = "https://arrolinks.vercel.app"
 
 DB = {}
 
